@@ -3,22 +3,26 @@ import { useStore } from '../context/StoreContext';
 import API from '../utils/api';
 import ProductCard from '../components/ProductCard';
 
-const CATEGORY_OPTIONS = ['All products', 'Bags', 'Towels', 'Bottles'];
 
 const Products = () => {
   const { products, setProducts } = useStore();
+  const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState('All products');
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await API.get('/products');
-        setProducts(data);
+        const [prodRes, catRes] = await Promise.all([
+          API.get('/products'),
+          API.get('/categories')
+        ]);
+        setProducts(prodRes.data);
+        setCategories(catRes.data);
       } catch (err) {
-        console.error("Failed to fetch products", err);
+        console.error("Failed to fetch data", err);
       }
     };
-    fetchProducts();
+    fetchData();
   }, [setProducts]);
 
   const filtered = useMemo(() => {
@@ -34,7 +38,10 @@ const Products = () => {
         <label className="filter">
           <span>Category</span>
           <select value={category} onChange={(e) => setCategory(e.target.value)}>
-            {CATEGORY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            <option value="All products">All products</option>
+            {categories.map(cat => (
+              <option key={cat._id} value={cat.name}>{cat.name}</option>
+            ))}
           </select>
         </label>
       </div>
