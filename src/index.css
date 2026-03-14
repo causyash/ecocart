@@ -1,7 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
 /* Minimal reset aligned with app theme */
-:root {}
+:root {
+  --green: #155d2a; /* dark green */
+  --green-2: #0f4520; /* darker for hover/focus */
+  --beige: #f5efe6; /* soft beige background */
+  --surface: #ffffff; /* white surfaces */
+  --text: #1f2937; /* slate */
+  --muted: #6b7280;
+  --border: #e5e7eb;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 6px 18px rgba(0,0,0,.10);
+
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+}
+
 
 * { box-sizing: border-box; }
 

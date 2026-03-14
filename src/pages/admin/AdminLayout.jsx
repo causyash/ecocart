@@ -1,6 +1,6 @@
 import { NavLink, Outlet, Navigate } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
-import { LayoutDashboard, ShoppingBag, Package, Users, LogOut } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, Users, LogOut, Layers } from 'lucide-react';
 
 const AdminLayout = () => {
   const { user, logout } = useStore();
@@ -23,6 +23,10 @@ const AdminLayout = () => {
           <NavLink to="/admin/products" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
             <Package size={20} />
             <span>Products</span>
+          </NavLink>
+          <NavLink to="/admin/categories" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+            <Layers size={20} />
+            <span>Categories</span>
           </NavLink>
           <NavLink to="/admin/orders" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
             <ShoppingBag size={20} />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import API from '../../utils/api';
 import { ShoppingBag, Package, Users, DollarSign } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -19,7 +20,7 @@ const AdminDashboard = () => {
           API.get('/users')
         ]);
         
-        const totalRevenue = orderRes.data.reduce((acc, order) => acc + order.totalAmount, 0);
+        const totalRevenue = orderRes.data.reduce((acc, order) => acc + (order.totalAmount || 0), 0);
 
         setStats({
           products: prodRes.data.length,
@@ -71,22 +72,23 @@ const AdminDashboard = () => {
       <div className="recent-activity">
         <h2>Quick Actions</h2>
         <div className="quick-actions">
-          <a href="/admin/products" className="action-card">
+          <Link to="/admin/products" className="action-card">
             <Package size={24} />
             Add New Product
-          </a>
-          <a href="/admin/orders" className="action-card">
+          </Link>
+          <Link to="/admin/orders" className="action-card">
             <ShoppingBag size={24} />
             Review Orders
-          </a>
-          <a href="/admin/users" className="action-card">
+          </Link>
+          <Link to="/admin/users" className="action-card">
             <Users size={24} />
             Manage Team
-          </a>
+          </Link>
         </div>
       </div>
     </div>
   );
 };
+
 
 export default AdminDashboard;

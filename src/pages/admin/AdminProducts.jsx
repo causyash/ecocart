@@ -8,8 +8,10 @@ const AdminProducts = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [formData, setFormData] = useState({
-    title: '', description: '', price: '', imageUrl: '', category: '', stock: ''
+    title: '', description: '', price: '', images: [''], category: '', stock: ''
   });
+
+  const [categories, setCategories] = useState([]);
 
   const fetchProducts = async () => {
     try {
@@ -20,27 +22,60 @@ const AdminProducts = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const res = await API.get('/categories');
+      setCategories(res.data);
+    } catch (err) {
+      console.error("Failed to fetch categories");
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleImageChange = (index, value) => {
+    const newImages = [...formData.images];
+    newImages[index] = value;
+    setFormData({ ...formData, images: newImages });
+  };
+
+  const addImageField = () => {
+    setFormData({ ...formData, images: [...formData.images, ''] });
+  };
+
+  const removeImageField = (index) => {
+    if (formData.images.length > 1) {
+      const newImages = formData.images.filter((_, i) => i !== index);
+      setFormData({ ...formData, images: newImages });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Filter out empty image URLs
+    const sanitizedData = {
+      ...formData,
+      images: formData.images.filter(img => img.trim() !== '')
+    };
+
     try {
       if (editingProduct) {
-        await API.put(`/products/${editingProduct._id}`, formData);
+        await API.put(`/products/${editingProduct._id}`, sanitizedData);
         toast.success("Product updated");
       } else {
-        await API.post('/products', formData);
+        await API.post('/products', sanitizedData);
         toast.success("Product added");
       }
       setShowModal(false);
       setEditingProduct(null);
-      setFormData({ title: '', description: '', price: '', imageUrl: '', category: '', stock: '' });
+      setFormData({ title: '', description: '', price: '', images: [''], category: '', stock: '' });
       fetchProducts();
     } catch (err) {
       toast.error(err.response?.data?.message || "Operation failed");
@@ -53,7 +88,7 @@ const AdminProducts = () => {
       title: product.title,
       description: product.description,
       price: product.price,
-      imageUrl: product.imageUrl,
+      images: product.images && product.images.length > 0 ? product.images : [''],
       category: product.category,
       stock: product.stock
     });
@@ -76,7 +111,7 @@ const AdminProducts = () => {
     <div className="admin-products">
       <div className="header-actions">
         <h1 className="page-title">Manage Products</h1>
-        <button className="add-btn" onClick={() => { setEditingProduct(null); setFormData({ title: '', description: '', price: '', imageUrl: '', category: '', stock: '' }); setShowModal(true); }}>
+        <button className="add-btn" onClick={() => { setEditingProduct(null); setFormData({ title: '', description: '', price: '', images: [''], category: '', stock: '' }); setShowModal(true); }}>
           <Plus size={20} /> Add Product
         </button>
       </div>
@@ -96,7 +131,7 @@ const AdminProducts = () => {
           <tbody>
             {products.map(product => (
               <tr key={product._id}>
-                <td><img src={product.imageUrl} alt={product.title} className="table-img" /></td>
+                <td><img src={product.images?.[0] || 'https://via.placeholder.com/50'} alt={product.title} className="table-img" /></td>
                 <td>{product.title}</td>
                 <td>{product.category}</td>
                 <td>₹{product.price}</td>
@@ -113,37 +148,78 @@ const AdminProducts = () => {
 
       {showModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content admin-modal">
             <div className="modal-header">
               <h2>{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
-              <button onClick={() => setShowModal(false)}><X size={24} /></button>
+              <button onClick={() => setShowModal(false)} className="close-btn"><X size={24} /></button>
             </div>
             <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Title</label>
-                <input type="text" name="title" value={formData.title} onChange={handleInputChange} required />
-              </div>
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Price</label>
-                  <input type="number" name="price" value={formData.price} onChange={handleInputChange} required />
+              <div className="form-sections">
+                <div className="form-left">
+                  <div className="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" value={formData.title} onChange={handleInputChange} required />
+                  </div>
+                  <div className="form-grid">
+                    <div className="form-group">
+                      <label>Price (₹)</label>
+                      <input type="number" name="price" value={formData.price} onChange={handleInputChange} required />
+                    </div>
+                    <div className="form-group">
+                      <label>Stock</label>
+                      <input type="number" name="stock" value={formData.stock} onChange={handleInputChange} required />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Category</label>
+                    <select name="category" value={formData.category} onChange={handleInputChange} required>
+                      <option value="">Select a category</option>
+                      {categories.map(cat => (
+                        <option key={cat._id} value={cat.name}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Description</label>
+                    <textarea name="description" value={formData.description} onChange={handleInputChange} required rows="4"></textarea>
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Stock</label>
-                  <input type="number" name="stock" value={formData.stock} onChange={handleInputChange} required />
+
+                <div className="form-right">
+                  <label>Product Images</label>
+                  <div className="image-inputs">
+                    {formData.images.map((img, idx) => (
+                      <div key={idx} className="image-input-group">
+                        <input 
+                          type="text" 
+                          placeholder="Image URL" 
+                          value={img} 
+                          onChange={(e) => handleImageChange(idx, e.target.value)} 
+                        />
+                        {formData.images.length > 1 && (
+                          <button type="button" onClick={() => removeImageField(idx)} className="remove-img-btn">
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button type="button" onClick={addImageField} className="add-img-btn">
+                      <Plus size={14} /> Add Another Image
+                    </button>
+                  </div>
+
+                  <div className="image-previews-container">
+                    <label>Previews</label>
+                    <div className="image-previews">
+                      {formData.images.map((img, idx) => img && (
+                        <div key={idx} className="preview-item">
+                          <img src={img} alt={`Preview ${idx}`} onError={(e) => e.target.src = 'https://via.placeholder.com/100?text=Invalid+URL'} />
+                        </div>
+                      ))}
+                      {formData.images.every(img => !img) && <p className="no-previews">No images to preview</p>}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="form-group">
-                <label>Category</label>
-                <input type="text" name="category" value={formData.category} onChange={handleInputChange} required />
-              </div>
-              <div className="form-group">
-                <label>Image URL</label>
-                <input type="text" name="imageUrl" value={formData.imageUrl} onChange={handleInputChange} required />
-              </div>
-              <div className="form-group">
-                <label>Description</label>
-                <textarea name="description" value={formData.description} onChange={handleInputChange} required rows="3"></textarea>
               </div>
               <button type="submit" className="submit-btn">{editingProduct ? 'Update Product' : 'Create Product'}</button>
             </form>
@@ -152,6 +228,7 @@ const AdminProducts = () => {
       )}
     </div>
   );
+
 };
 
 export default AdminProducts;

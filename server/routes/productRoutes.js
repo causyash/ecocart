@@ -27,8 +27,8 @@ router.get('/:id', async (req, res) => {
 // Admin: Add product
 router.post('/', protect, admin, async (req, res) => {
   try {
-    const { title, description, price, imageUrl, category, stock } = req.body;
-    const product = await Product.create({ title, description, price, imageUrl, category, stock });
+    const { title, description, price, images, category, stock } = req.body;
+    const product = await Product.create({ title, description, price, images, category, stock });
     res.status(201).json(product);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -43,9 +43,10 @@ router.put('/:id', protect, admin, async (req, res) => {
       product.title = req.body.title || product.title;
       product.description = req.body.description || product.description;
       product.price = req.body.price || product.price;
-      product.imageUrl = req.body.imageUrl || product.imageUrl;
+      product.images = req.body.images || product.images;
       product.category = req.body.category || product.category;
       product.stock = req.body.stock || product.stock;
+
 
       const updatedProduct = await product.save();
       res.json(updatedProduct);

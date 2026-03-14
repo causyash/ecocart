@@ -8,6 +8,7 @@ const ProductInfo = () => {
   const { id } = useParams();
   const { addToCart } = useStore();
   const [product, setProduct] = useState(null);
+  const [mainImage, setMainImage] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,6 +16,9 @@ const ProductInfo = () => {
       try {
         const { data } = await API.get(`/products/${id}`);
         setProduct(data);
+        if (data.images && data.images.length > 0) {
+          setMainImage(data.images[0]);
+        }
       } catch (err) {
         console.error("Failed to fetch product", err);
       } finally {
@@ -35,8 +39,25 @@ const ProductInfo = () => {
   return (
     <div className="container section">
       <div className="product-info">
-        <img src={product.imageUrl} alt={product.title} />
-        <div>
+        <div className="product-gallery">
+          <div className="main-image">
+            <img src={mainImage || product.images?.[0] || 'https://via.placeholder.com/600'} alt={product.title} />
+          </div>
+          {product.images?.length > 1 && (
+            <div className="thumbnails">
+              {product.images.map((img, idx) => (
+                <div 
+                  key={idx} 
+                  className={`thumbnail ${mainImage === img ? 'active' : ''}`}
+                  onClick={() => setMainImage(img)}
+                >
+                  <img src={img} alt={`thumbnail ${idx}`} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="product-details">
           <h2>{product.title}</h2>
           <p className="price">₹{product.price.toFixed(2)}</p>
           <p>{product.description}</p>
@@ -48,6 +69,7 @@ const ProductInfo = () => {
       </div>
     </div>
   );
+
 };
 
 export default ProductInfo;
